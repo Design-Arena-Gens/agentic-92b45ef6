@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BookWise</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar__logo">
+        <i class="ri-book-open-line"></i>
+        <span>BookWise</span>
+      </div>
+      <nav class="sidebar__nav" id="sidebarNav"></nav>
+      <div class="sidebar__footer">
+        <div class="status-pill">
+          <span class="status-dot"></span>
+          <span data-i18n="status_online">Online</span>
+        </div>
+        <small>&copy; <span id="sidebarYear"></span> BookWise</small>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar__left">
+          <button class="topbar__menu" id="menuToggle" aria-label="Toggle navigation">
+            <i class="ri-menu-line"></i>
+          </button>
+          <h1 class="topbar__title" data-i18n="app_name">BookWise</h1>
+        </div>
+        <div class="topbar__actions">
+          <div class="language-switch" id="languageSwitch">
+            <button data-lang="en" class="is-active">EN</button>
+            <button data-lang="fr">FR</button>
+          </div>
+          <div class="user-menu">
+            <img src="https://i.pravatar.cc/40?img=8" alt="User avatar" />
+            <div>
+              <strong data-i18n="user_name">Alex Martin</strong>
+              <span data-i18n="user_role">Store Manager</span>
+            </div>
+            <i class="ri-arrow-down-s-line"></i>
+          </div>
+        </div>
+      </header>
+
+      <main class="content">
+        <div class="breadcrumb" id="breadcrumb"></div>
+        <section class="view" id="viewContainer"></section>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal" id="posModal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal__backdrop" data-modal-close></div>
+    <div class="modal__content">
+      <header>
+        <h2 data-i18n="pos_modal_title">Point of Sale</h2>
+        <button class="icon-button" data-modal-close aria-label="Close POS">
+          <i class="ri-close-line"></i>
+        </button>
+      </header>
+      <div class="modal__body" id="posModalBody"></div>
+    </div>
+  </div>
+
+  <template id="dashboardTemplate">
+    <div class="grid grid--summary">
+      <article class="card card--summary">
+        <div class="icon icon--primary">
+          <i class="ri-line-chart-line"></i>
+        </div>
+        <div>
+          <p data-i18n="summary_revenue_label">Today's Revenue</p>
+          <h3 id="summaryRevenue">$4,530</h3>
+        </div>
+        <span class="trend trend--up">+12%</span>
+      </article>
+      <article class="card card--summary">
+        <div class="icon icon--accent">
+          <i class="ri-shopping-bag-3-line"></i>
+        </div>
+        <div>
+          <p data-i18n="summary_orders_label">Orders</p>
+          <h3 id="summaryOrders">128</h3>
+        </div>
+        <span class="trend trend--neutral">0%</span>
+      </article>
+      <article class="card card--summary">
+        <div class="icon icon--warning">
+          <i class="ri-book-3-line"></i>
+        </div>
+        <div>
+          <p data-i18n="summary_inventory_label">Stock Alerts</p>
+          <h3 id="summaryInventory">6</h3>
+        </div>
+        <span class="trend trend--down">-5%</span>
+      </article>
+      <article class="card card--summary">
+        <div class="icon icon--success">
+          <i class="ri-user-smile-line"></i>
+        </div>
+        <div>
+          <p data-i18n="summary_customers_label">New Members</p>
+          <h3 id="summaryCustomers">24</h3>
+        </div>
+        <span class="trend trend--up">+8%</span>
+      </article>
+    </div>
+
+    <div class="grid">
+      <article class="card card--wide">
+        <header>
+          <h2 data-i18n="sales_overview_title">Sales Overview</h2>
+          <span class="chip" data-i18n="sales_overview_period">Last 7 days</span>
+        </header>
+        <div class="chart" id="salesChart" aria-hidden="true"></div>
+        <div class="chart__legend" id="salesLegend"></div>
+      </article>
+      <article class="card card--wide">
+        <header>
+          <h2 data-i18n="top_products_title">Top Products</h2>
+          <button class="ghost-button" data-i18n="view_all">View all</button>
+        </header>
+        <div class="table">
+          <div class="table__header">
+            <span data-i18n="product">Product</span>
+            <span data-i18n="category">Category</span>
+            <span data-i18n="units_sold">Units</span>
+            <span data-i18n="revenue">Revenue</span>
+          </div>
+          <div class="table__body" id="topProductsTable"></div>
+        </div>
+      </article>
+    </div>
+
+    <div class="grid">
+      <article class="card">
+        <header>
+          <h2 data-i18n="tasks_title">Today's Tasks</h2>
+          <button class="ghost-button" data-i18n="add">Add</button>
+        </header>
+        <ul class="task-list" id="taskList"></ul>
+      </article>
+      <article class="card">
+        <header>
+          <h2 data-i18n="notifications_title">Notifications</h2>
+          <button class="ghost-button" data-i18n="mark_all_read">Mark as read</button>
+        </header>
+        <ul class="notification-list" id="notificationList"></ul>
+      </article>
+    </div>
+  </template>
+
+  <template id="salesTemplate">
+    <div class="view__header">
+      <div>
+        <h2 data-i18n="sales_title">Point of Sale</h2>
+        <p data-i18n="sales_subtitle">Process purchases and manage cart items</p>
+      </div>
+      <button class="primary-button" data-i18n="open_pos" data-open-pos>Open POS</button>
+    </div>
+    <div class="grid">
+      <article class="card card--wide">
+        <header>
+          <h3 data-i18n="recent_transactions">Recent transactions</h3>
+          <button class="ghost-button" data-i18n="export">Export</button>
+        </header>
+        <div class="table">
+          <div class="table__header">
+            <span data-i18n="order_id">Order ID</span>
+            <span data-i18n="customer">Customer</span>
+            <span data-i18n="items">Items</span>
+            <span data-i18n="total">Total</span>
+            <span data-i18n="time">Time</span>
+          </div>
+          <div class="table__body" id="recentTransactions"></div>
+        </div>
+      </article>
+      <article class="card">
+        <header>
+          <h3 data-i18n="sales_metrics">Sales metrics</h3>
+        </header>
+        <ul class="metric-list" id="salesMetrics"></ul>
+      </article>
+    </div>
+  </template>
+
+  <template id="stockTemplate">
+    <div class="view__header">
+      <div>
+        <h2 data-i18n="stock_title">Inventory</h2>
+        <p data-i18n="stock_subtitle">Monitor stock levels and reorder points</p>
+      </div>
+      <button class="primary-button" data-i18n="new_purchase_order">New purchase order</button>
+    </div>
+    <div class="card card--wide">
+      <div class="table">
+        <div class="table__header">
+          <span data-i18n="sku">SKU</span>
+          <span data-i18n="product">Product</span>
+          <span data-i18n="stock">Stock</span>
+          <span data-i18n="reorder_point">Reorder</span>
+          <span data-i18n="supplier">Supplier</span>
+        </div>
+        <div class="table__body" id="stockTable"></div>
+      </div>
+    </div>
+  </template>
+
+  <template id="suppliersTemplate">
+    <div class="view__header">
+      <div>
+        <h2 data-i18n="suppliers_title">Suppliers</h2>
+        <p data-i18n="suppliers_subtitle">Manage vendor relationships and contracts</p>
+      </div>
+      <button class="primary-button" data-i18n="add_supplier">Add supplier</button>
+    </div>
+    <div class="grid">
+      <article class="card card--wide">
+        <header>
+          <h3 data-i18n="preferred_suppliers">Preferred suppliers</h3>
+        </header>
+        <div class="supplier-grid" id="supplierGrid"></div>
+      </article>
+      <article class="card">
+        <header>
+          <h3 data-i18n="upcoming_deliveries">Upcoming deliveries</h3>
+        </header>
+        <ul class="timeline" id="deliveryTimeline"></ul>
+      </article>
+    </div>
+  </template>
+
+  <template id="reportsTemplate">
+    <div class="view__header">
+      <div>
+        <h2 data-i18n="reports_title">Reports</h2>
+        <p data-i18n="reports_subtitle">Visualize performance and trends</p>
+      </div>
+      <button class="primary-button" data-i18n="generate_report">Generate report</button>
+    </div>
+    <div class="grid">
+      <article class="card card--wide">
+        <header>
+          <h3 data-i18n="revenue_breakdown">Revenue breakdown</h3>
+        </header>
+        <div class="chart chart--bars" id="reportRevenue"></div>
+      </article>
+      <article class="card">
+        <header>
+          <h3 data-i18n="report_filters">Filters</h3>
+        </header>
+        <form class="filter-form" id="reportFilters"></form>
+      </article>
+    </div>
+  </template>
+
+  <template id="settingsTemplate">
+    <div class="view__header">
+      <div>
+        <h2 data-i18n="settings_title">Settings</h2>
+        <p data-i18n="settings_subtitle">Configure the BookWise workspace</p>
+      </div>
+    </div>
+    <div class="grid">
+      <article class="card">
+        <header>
+          <h3 data-i18n="profile_settings">Profile</h3>
+        </header>
+        <form class="form">
+          <label>
+            <span data-i18n="full_name">Full name</span>
+            <input type="text" placeholder="Alex Martin" />
+          </label>
+          <label>
+            <span data-i18n="email">Email</span>
+            <input type="email" placeholder="alex@bookwise.com" />
+          </label>
+          <label>
+            <span data-i18n="preferred_language">Preferred language</span>
+            <select>
+              <option value="en">English</option>
+              <option value="fr">Français</option>
+            </select>
+          </label>
+          <button class="primary-button" type="button" data-i18n="save_changes">Save changes</button>
+        </form>
+      </article>
+      <article class="card">
+        <header>
+          <h3 data-i18n="store_settings">Store</h3>
+        </header>
+        <form class="form">
+          <label>
+            <span data-i18n="store_name">Store name</span>
+            <input type="text" placeholder="BookWise Downtown" />
+          </label>
+          <label>
+            <span data-i18n="currency">Currency</span>
+            <select>
+              <option value="cad">CAD</option>
+              <option value="usd">USD</option>
+              <option value="eur">EUR</option>
+            </select>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" checked />
+            <span></span>
+            <div>
+              <strong data-i18n="enable_notifications">Enable notifications</strong>
+              <small data-i18n="enable_notifications_desc">Receive alerts for low stock and new orders</small>
+            </div>
+          </label>
+        </form>
+      </article>
+    </div>
+  </template>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
